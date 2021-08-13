@@ -11,29 +11,61 @@ const db = mysql.createConnection(
     database: 'employee_tracker_db'
   },
   console.log(`Connected to the employee_tracker_db database.`)
+  
 );
 
+initPrompt()
 
-inquirer
-  .prompt([
+function initPrompt()
+{
+  inquirer.prompt([
     {
-      type: 'input',
-      message: 'What is your user name?',
-      name: 'username',
-    },
-    {
-      type: 'password',
-      message: 'What is your password?',
-      name: 'password',
-    },
-    {
-      type: 'password',
-      message: 'Re-enter password to confirm:',
-      name: 'confirm',
-    },
-  ])
-  .then((response) =>
-    response.confirm === response.password
-      ? console.log('Success!')
-      : console.log('You forgot your password already?!')
-  );
+      type: "list",
+      message: "What would you like to do?",
+      name: "choice",
+      choices: [
+        "View All Departments",
+        "View All Roles",
+        "View All Employees",
+        "Update Employee",
+        "Add Employee",
+        "Add Role",
+        "Add Department"
+      ]
+    }
+  ]).then(function (data)
+  {
+    switch (data.choice) {
+      case "View All Departments":
+        viewDepartments()
+        break;
+      case "View All Roles":
+        viewRoles()
+        break;
+      case "View All Employees":
+        viewEmployees()
+        break;
+      case "Update Employee":
+        updateEmployee()
+        break;
+      case "Add Employee":
+        addEmployee()
+        break;
+      case "Add Role":
+        addRole()
+        break;
+      case "Add Department":
+        addDepartment()
+        break;
+    }
+  })
+}
+
+
+function viewDepartments()
+{
+  db.query('SELECT * FROM department',function (err,results)
+  {
+    console.log(results);
+  });
+}
