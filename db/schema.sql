@@ -9,9 +9,9 @@ DESCRIBE department;
 CREATE TABLE role (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(30),
-  salary DECIMAL,
-  department_id INT NOT NULL,
-  FOREIGN KEY (department_id) REFERENCES department(id)
+  salary DECIMAL DEFAULT 0.00,
+  department_id INT NOT NULL DEFAULT 700,
+  FOREIGN KEY (department_id) REFERENCES department(id) ON UPDATE CASCADE
 );
 DESCRIBE role;
 CREATE TABLE employee (
@@ -24,5 +24,4 @@ CREATE TABLE employee (
   FOREIGN KEY (manager_id) REFERENCES employee(id)
 );
 DESCRIBE employee;
-
 source seeds.sql

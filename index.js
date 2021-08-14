@@ -2,20 +2,22 @@ const inquirer = require('inquirer');
 const mysql = require('mysql2')
 const table = require('console.table');
 
+const allRoles = []
+const allManagers = []
+
 // Connect to database
 const db = mysql.createConnection(
   {
     host: 'localhost',
+    port: 3306,
     user: 'root',
     password: 'password',
     database: 'employee_tracker_db'
   },
   console.log(`Connected to the employee_tracker_db database.`)
-  
+
 );
-
-initPrompt()
-
+// ! Working
 function initPrompt()
 {
   inquirer.prompt([
@@ -60,12 +62,160 @@ function initPrompt()
     }
   })
 }
-
-
+// ! Working
 function viewDepartments()
 {
   db.query('SELECT * FROM department',function (err,results)
   {
-    console.log(results);
+    console.table(results);
+    initPrompt()
   });
 }
+// ! Working
+function viewRoles()
+{
+  db.query('SELECT * FROM role',function (err,results)
+  {
+    console.table(results);
+    initPrompt()
+  });
+}
+// ! Working
+function viewEmployees()
+{
+  db.query('SELECT * FROM employee',function (err,results)
+  {
+    console.table(results);
+    initPrompt()
+  });
+}
+// ! Working
+function addEmployee()
+{
+  inquirer.prompt([
+    {
+      name: "first_name",
+      type: "input",
+      message: "New Employee First Name: "
+
+    },
+    {
+      name: "last_name",
+      type: "input",
+      message: "New Employee Last Name: "
+    },
+    {
+      name: "role",
+      type: "list",
+      message: "What is their role?",
+      choices: selectRole()
+    },
+    {
+      name: "manager",
+      type: "list",
+      message: "Who is their manager?",
+      choices: selectManager()
+    }
+  ])
+    .then(function (data)
+    {
+      var roleId = selectRole().indexOf(data.role) + 1
+      var managerId = selectManager().indexOf(data.choice) + 1
+
+      db.query('INSERT INTO employee SET ?',
+        {
+          first_name: data.first_name,
+          last_name: data.last_name,
+          manager_id: managerId,
+          role_id: roleId
+        },function (err)
+      {
+        console.table(data)
+        initPrompt()
+      })
+    })
+}
+// ! Working
+// make array of all roles
+function selectRole()
+{
+  db.query('SELECT title FROM role',function (err,res)
+  {
+    for (var i = 0; i < res.length; i++) {
+      allRoles.push(res[i].title)
+    }
+  })
+  return allRoles;
+}
+// ! Working
+// making array of all managers
+function selectManager()
+{
+  db.query('SELECT first_name, last_name FROM employee WHERE manager_id IS NULL',function (err,res)
+  {
+    for (var i = 0; i < res.length; i++) {
+      allManagers.push(res[i].first_name)
+    }
+  })
+  return allManagers;
+}
+
+function addDepartment() { }
+
+// function addRole(){
+//   db.query('SELECT role.title AS selectedTitle, role.salary AS selectedSalary FROM role', function (err, res) {
+//     inquirer.prompt([
+//       {
+//         name: "selectedTitle",
+//         type: "input",
+//         message: "Which role would you like to edit? (Enter title): "
+//       },
+//       {
+//         name: "selectedSalary",
+//         type: "input",
+//         message: "What is the new salary?"
+//       }
+//     ]).then(function(res) {
+//       db.query("INSERT INTO role SET ?", {
+//         title: res.selectedTitle,
+//         salary: res.selectedSalary,
+//       })
+//     })
+//   })
+// }
+
+
+// function updateEmployee()
+// {
+//   db.query('SELECT * FROM employee'),function (err,results)
+//   {
+//     inquirer.prompt([
+//       {
+//         type: "list",
+//         name: "updateEmployee",
+//         choices: function ()
+//         {
+//           var employeeId = []
+//           for (var i = 0; i < results.length; i++) {
+//             employeeId.push(results[i].employeeId)
+//           }
+//           return employeeId
+//         },
+//         message: "Select Employee to Update",
+//       },
+//       {
+//         name: "role",
+//         type: 'list',
+//         message: "What is the Employee's new role?",
+//         choices: selectRole()
+//       },
+//     ]).then(function(??????))
+//       {
+//         console.table(results);
+//         initPrompt()
+//       });
+//     }
+
+
+
+initPrompt()
