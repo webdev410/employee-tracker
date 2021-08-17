@@ -1,6 +1,9 @@
+
 const inquirer=require('inquirer');
 const mysql=require('mysql2')
 const table=require('console.table');
+
+
 
 const allRoles=[]
 const allManagers=[]
@@ -14,11 +17,15 @@ const db=mysql.createConnection(
     password: 'password',
     database: 'employee_tracker_db'
   },
-  console.log(`Connected to the employee_tracker_db database.`)
+  console.log(`
+  Connected to the database 🚀.
+  
+  ---MAIN MENU---
+  `)
 
 );
 // Initial prompt
-function initPrompt() {
+function initPrompt () {
   inquirer.prompt([
     {
       type: "list",
@@ -28,17 +35,22 @@ function initPrompt() {
         "View All Departments",
         "View All Roles",
         "View All Employees",
-        "Update Employee",
+        new inquirer.Separator(),
         "Add Employee",
         "Add Role",
         "Add Department",
-        "Exit"
+        new inquirer.Separator(),
+        "Update Employee",
+        new inquirer.Separator(),
+        "Exit",
+        new inquirer.Separator(),
+        new inquirer.Separator(),
       ]
     }
-  ]).then(function(data)
+  ]).then(function (data)
   // switch statement depending on the choice in init prompt
   {
-    switch(data.choice) {
+    switch (data.choice) {
       case "View All Departments":
         viewDepartments()
         break;
@@ -65,41 +77,73 @@ function initPrompt() {
     }
   })
 }
-function exit() {
+function exit () {
   console.log("Thanks for using the Employee Tracker. Goodbye!")
   process.exit();
 }
 
 // Query to show all departments
-function viewDepartments() {
-  db.query('SELECT * FROM department',function(err,results) {
-    if(err) throw err;
+function viewDepartments () {
+  db.query('SELECT * FROM department', function (err, results) {
+    if (err) throw err;
+    console.log(`
+  
+  
+  --------DEPARTMENTS---------------
+  `)
     console.table(results);
+    console.log(`
+  -------END DEPARTMENTS---------
+  
+  ---MAIN MENU---
+  `)
     initPrompt()
   });
 }
 // Query to show all roles
-function viewRoles() {
-  db.query('SELECT * FROM role',function(err,results) {
-    if(err) throw err;
+function viewRoles () {
+  // db.query('SELECT * FROM role', function (err, results) {
+  db.query('SELECT department.name AS Department, role.title AS Role, role.salary AS Salary FROM role JOIN department ON role.department_id = department.id;', function (err, results) {
+    if (err) throw err;
+    console.log(`
+  
+  
+  ------------ROLES---------------
+  `)
     console.table(results);
+    console.log(`
+  ----------END ROLES-------------
+  
+  ---MAIN MENU---
+  `)
     initPrompt()
   });
 }
 // Query to show all employees
-function viewEmployees() {
-  db.query('SELECT * FROM employee',function(err,results) {
-    if(err) throw err;
+function viewEmployees () {
+  db.query('SELECT * FROM employee', function (err, results) {
+    if (err) throw err;
+
+    console.log(`
+  
+    --------EMPLOYEES---------------
+  `)
     console.table(results);
+    console.log(`
+  ----------END EMPLOYEES-------------
+  
+  ---MAIN MENU---
+  `)
     initPrompt()
   });
 }
 // If add employee is selected, this function runs
-function addEmployee() {
+function addEmployee () {
   inquirer.prompt([
     {
       name: "first_name",
       type: "input",
+      color: 'red',
       message: "New Employee First Name: "
 
     },
@@ -122,7 +166,7 @@ function addEmployee() {
     }
   ])
     // then add employee to database
-    .then(function(data) {
+    .then(function (data) {
       var roleId=selectRole().indexOf(data.role)+1
       var managerId=selectManager().indexOf(data.manager)+1
 
@@ -133,10 +177,10 @@ function addEmployee() {
           manager_id: managerId,
           role_id: roleId
         },
-        function(err,res) {
-          if(err) throw err;
-          console.table(res)
-          console.table(data)
+        function (err, res) {
+          if (err) throw err;
+          // console.table(res)
+          // console.table(data)
           initPrompt()
         },
 
@@ -144,26 +188,27 @@ function addEmployee() {
     })
 }
 // Make array of all roles
-function selectRole() {
-  db.query('SELECT title FROM role',function(err,res) {
-    for(var i=0;i<res.length;i++) {
+function selectRole () {
+  db.query('SELECT title FROM role', function (err, res) {
+    for (var i=0; i<res.length; i++) {
       allRoles.push(res[i].title)
     }
   })
   return allRoles;
 }
 // Making array of all managers
-function selectManager() {
-  db.query('SELECT first_name, last_name FROM employee WHERE manager_id IS NULL',function(err,res) {
-    if(err) throw err;
-    for(var i=0;i<res.length;i++) {
-      allManagers.push(res[i].first_name)
+function selectManager () {
+  db.query('SELECT * FROM employee WHERE manager_id IS NULL', function (err, res) {
+    if (err) throw err;
+    // console.log('RES', res)
+    for (var i=0; i<res.length; i++) {
+      allManagers.push(`${res[i].id} - ${res[i].first_name} ${res[i].last_name}`)
     }
   })
   return allManagers;
 }
 // Prompt for the new department name and then insert into the database
-function addDepartment() {
+function addDepartment () {
   {
     inquirer.prompt([
       {
@@ -172,24 +217,29 @@ function addDepartment() {
         message: "Enter the new department name: "
       }
     ])
-      .then(function(data) {
+      .then(function (data) {
 
         db.query('INSERT INTO department SET ?',
           {
             name: data.department,
-          },function(err) {
-          console.table(data)
-          initPrompt()
-        })
+          }, function (err) {
+            console.log(`
+  ADDED 🚀.
+  
+  ---MAIN MENU---
+  `)
+            console.table(data)
+            initPrompt()
+          })
       })
   }
 }
 // Prompt for the new role and then insert into the database
-function addRole() {
+function addRole () {
   // grab departments to allow role assignment
-  db.query('SELECT id, name FROM department',function(err,depoQueryResult) {
-    if(err) throw err;
-    var depolist=depoQueryResult.map(function(department) {
+  db.query('SELECT id, name FROM department', function (err, depoQueryResult) {
+    if (err) throw err;
+    var depolist=depoQueryResult.map(function (department) {
       return department.name
     });
 
@@ -207,55 +257,59 @@ function addRole() {
       {
         name: "selectedDepo",
         type: "list",
-        message: "Which department does this belong to?",
+        message: "Which department does this role belong to?",
         choices: depolist
       }
     ]
 
-    if(depoQueryResult.length===0) {
+    if (depoQueryResult.length===0) {
       console.error('❌ ❌ ❌ You must enter a department first! ❌ ❌ ❌')
       return addRole();
     }
 
-    inquirer.prompt(roleQuestions).then(function(roleAnswers) {
+    inquirer.prompt(roleQuestions).then(function (roleAnswers) {
       var departmentId;
-      for(var i=0;i<depoQueryResult.length;i++) {
-        if(roleAnswers.selectedDepo===depoQueryResult[i].name) {
+      for (var i=0; i<depoQueryResult.length; i++) {
+        if (roleAnswers.selectedDepo===depoQueryResult[i].name) {
           departmentId=depoQueryResult[i].id
           break
         }
       }
-      console.log(departmentId)
+      // console.log(departmentId)
       db.query("INSERT INTO role SET ?",
         {
           title: roleAnswers.selectedTitle,
           salary: roleAnswers.selectedSalary,
           department_id: departmentId,
         },
-        function(err,data) {
-          if(err) throw err;
-          console.table(data)
-          console.log('Successfully added role! 🥳')
+        function (err, data) {
+          if (err) throw err;
+          // console.table(data)
+          console.info(`
+          
+          Successfully added role! 🥳
+          
+          ---MAIN MENU---
+          `)
           initPrompt()
         }
       )
-    })   
+    })
   })
 }
-
 // Select all employees and create a new array by their last name
-function updateEmployee() {
-  db.query('SELECT * FROM employee JOIN role ON employee.role_id = role.id;',function(err,res) {
-    if(err) throw err;
+function updateEmployee () {
+  db.query('SELECT * FROM employee JOIN role ON employee.role_id = role.id;', function (err, res) {
+    if (err) throw err;
     inquirer.prompt([
       {
         type: "list",
         name: "updateId",
         message: "Select an employee to update: ",
-        choices: function() {
+        choices: function () {
           var allEmployees=[]
-          for(var i=0;i<res.length;i++) {
-            allEmployees.push(res[i].last_name)
+          for (var i=0; i<res.length; i++) {
+            allEmployees.push(`${res[i].id} - ${res[i].first_name} ${res[i].last_name}`)
           }
           return allEmployees
         },
@@ -264,22 +318,35 @@ function updateEmployee() {
       {
         name: "role",
         type: 'list',
-        message: "What is the Employee's new role?",
+        message: "What is the employee's new role?",
         choices: selectRole()
       },
+      {
+        name: "manager",
+        type: 'list',
+        message: "Who is the employee's new manager?",
+        choices: selectManager()
+      },
       // update database with new employee
-    ]).then(function(data) {
-      var roleId=selectRole().indexOf(data.role)+1
+    ]).then(function (data) {
+      console.log(data.manager)
+      var mgrId =selectRole().indexOf(data.manager)
       db.query('UPDATE employee SET WHERE ?',
         {
           id: data.updateId,
-          role_id: data.roleId
-        },function(err) {
-        console.table(data)
-        initPrompt()
-      })
+          role_id: data.roleId,
+          manager_id: mgrId
+          
+        }, function (err) {
+          console.table(data)
+          initPrompt()
+        })
     })
   });
 }
+
+
+
+
 
 initPrompt()
