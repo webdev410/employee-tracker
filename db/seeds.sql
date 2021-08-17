@@ -11,11 +11,11 @@ VALUES (01, "Accountant", 80000.00, 1),
   (04, "Software Developer", 100000.00, 4),
   (05, "Manager", 65000.00, 5);
 INSERT INTO employee (id, first_name, last_name, role_id, manager_id)
-VALUES (001, "Mr", "Manager", 05, NULL),
-  (002, "Kevin", "Fauth", 05, NULL),
-  (003, "Brandon", "Keiser", 01, 001),
-  (004, "Andrew", "Keiser", 04, 002),
-  (005, "Laurel", "Figueroa", 03, 002);
+VALUES (001, "Dave", "Manager", 05, NULL),
+  (002, "Kevin", "Holmes", 05, NULL),
+  (003, "Brandon", "Adams", 01, 001),
+  (004, "Andrew", "Hart", 04, 002),
+  (005, "Sara", "Foster", 03, 002);
 
 DESCRIBE department;
 DESCRIBE role;
